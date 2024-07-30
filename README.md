@@ -1,3 +1,3 @@
 # Radiacion_UV
 
-En este repositorio se encuentran ejemplos de script para la generación de gráficas para análisis de la radiación ultravioleta.
+En este repositorio se encuentran ejemplos de script para la generación de gráficas de análisis de la radiación ultravioleta.
