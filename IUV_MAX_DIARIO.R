@@ -1,26 +1,34 @@
+##########################################################################################
+#### ELABORACIÓN DE GRAFICA DE VARIACION DIARIA DEL IUV MÁXIMO PARA UNA ESTACIÓN #########
+##########################################################################################
 
-###############################################################################
-#### ELABORACIÓN DE VARIACION DIARIA DEL IUV MÁXIMO PARA UNA ESTACIÓN #########
-###############################################################################
+# Si has instalado R por primera vez se recomienda instalar la herramienta RTools, que sera importante para evitar
+# errores en la instalacion de algunas librerias, mayor información puedes ver la siguiente página: https://cran.r-project.org/bin/windows/Rtools/ 
 
 ##### INSTALACION DE LIBRERIAS #####
 # En caso de no contar con las siguientes librerias instaladas, primero deben ser instaladas.
-install.packages("readxl",dependencies = TRUE)
-install.packages("magrittr",dependencies = TRUE)
-install.packages("tidyverse",dependencies = TRUE)
-install.packages("openair",dependencies = TRUE)
+# Lista de librerías necesarias
+
+librerias <- c("readxl", "magrittr", "tidyverse", "openair","stringi")
+
+# Verifica e instala aquellas librerias que faltan
+for (lib in librerias) {
+  if (!require(lib, character.only = TRUE)) {
+    install.packages(lib, dependencies = TRUE)
+  }
+}
 
 #### ACTIVACION DE LIBRERIA ####
-# Una vez instaldas las librerias, se procede a activarlas como sigue a continuación
-library(readxl)
-library(magrittr)
-library(tidyverse)
-library(ggplot2)
-library(openair)
+# Una vez instaldas las librerias, se procede a activarlas como sigue a continuaci?n
+
+library(readxl)    # Permite abrir archivos de hoja de calculo excel
+library(magrittr)  # permite utilizar pipetas ( |> ) para unir funciones 
+library(tidyverse) # Tiene multiples paquetes para la manipulacion de tablas, entre otros
+library(openair)   # Permite realizar promedios moviles de una variable y obtener estadisticos
 
 ##### IMPORTACION DE DATOS AL MINUTO DEL IUV #####
 # Definir en la maquina local la ruta o dirección la carpeta de trabajo, en donde se encontrará el archivo excel 
-# de los datos de radiación UV y colocarlo en la línea siguiente entre parentesis
+# de los datos de radiación UV y colocarlo en la l?nea siguiente entre parentesis
 
 setwd(r"(C:\boletin_ruv)")
 
@@ -31,34 +39,34 @@ setwd(r"(C:\boletin_ruv)")
 datos<-read_excel('data_radiacion.xlsx')
 
 #Cambiar la columna "date" de un formato caracter a formato fecha
-datos = datos %>% mutate(.,date=as.POSIXct(date))
+datos <-  datos |>  mutate(date=as.POSIXct(date))
 
 ############  ESTIMACIÓN DEL IUV MÁXIMO DIARIO ##########
 # Realizar el promedio de cada 30 minutos del IUV
 # indicar el nombre de la columna que tiene los datos del IUV , en este caso corresponde a "Indice_UV_Avg"
 # podemos indicar una nueva columna a crear con los promedios, por ejemplo "IUV_MM"
 
-datos_iuv = openair::rollingMean(datos,"Indice_UV_Avg",width = 30,new.name = "IUV_MM",
+datos_iuv <- openair::rollingMean(datos,"Indice_UV_Avg",width = 30,new.name = "IUV_MM",
                                  align = "right",data.thresh = 100)
 
 # Estimar el máximo promedio de cada 30 minutos del IUV por  día
-datos_iuv = openair::timeAverage(datos_iuv,avg.time = "day",statistic = "max")
+datos_iuv <- openair::timeAverage(datos_iuv,avg.time = "day",statistic = "max")
 
 # Seleccionar las variables requeridas y redondear a valor entero el máximo promedio de cada 30 minutos del IUV por  día
-datos_iuv = as.data.frame(datos_iuv) %>% select(.,date,IUV_MM) %>% 
+datos_iuv <- as.data.frame(datos_iuv) |>  select(date,IUV_MM) |> 
   mutate(IUV = round(IUV_MM,0)) 
 
 ########### PREPARACION DE DATOS PARA GRAFICAR #######
 # Preparación de etiquetas del eje x (fechas)
-datos_iuv = datos_iuv %>% mutate(num=c(1:nrow(datos_iuv)))
+datos_iuv <- datos_iuv |>  mutate(num=c(1:nrow(datos_iuv)))
 
 s <- as.Date("2024-01-01",tz = "Etc/GMT") # fecha de inicio
 e <- as.Date("2024-01-31",tz = "Etc/GMT") # fecha de termino
-etiquetas = format(seq(from=s, to=e, by=5),"%b %d") #intervalo de días de las etiquetas y formato respectivo
+etiquetas <- format(seq(from=s, to=e, by=5),"%b %d") #intervalo de d?as de las etiquetas y formato respectivo
 
 # En cuanto al formato de fecha podemos considerar los siguientes tipos 
 
-# Símbolo	  Significado
+# Simbolo	  Significado
 # %d	      día (numérico, de 0 a 31)
 # %a	      día de la semana abreviado a tres letras
 # %A	      día de la semana (nombre completo)
@@ -78,18 +86,18 @@ iuv_catg <- data.frame(xstart = c(0,2,5,7,10), xend = c(2,5,7,10,20),
 # Establecer un orden predeterminado distinto al alfabetico de las categorias
 # en este caso el orden es "Baja","Moderada","Alta","Muy Alta","Extremadamente Alta"
 
-iuv_catg$Categoria = factor(iuv_catg$Categoria,levels = c("Baja","Moderada","Alta","Muy Alta","Extremadamente Alta"),
+iuv_catg$Categoria <- factor(iuv_catg$Categoria,levels = c("Baja","Moderada","Alta","Muy Alta","Extremadamente Alta"),
                             labels = c("Baja","Moderada","Alta","Muy Alta","Extremadamente Alta"))
 
 ######### REALIZAR LA GRAFICA DE VARIACION DIARIA DEL IUV MAXIMO #####
 
-IUV_MAX_DIARIO<- ggplot() + 
+IUV_MAX_DIARIO <- ggplot() + 
   geom_rect(data=iuv_catg, aes(ymin = xstart,
                                ymax = xend,
                                xmin = - Inf,
                                xmax = Inf,
                                fill= Categoria), alpha = 0.8) + #establecer las categorias de exposicion como fondo de colores
-  geom_line(data= datos_iuv, aes(x= num, y = IUV), color = "black", size = 0.9) + #dibujar los datos como lineas
+  geom_line(data= datos_iuv, aes(x= num, y = IUV), color = "black", linewidth = 0.9) + #dibujar los datos como lineas
   geom_point(data= datos_iuv, aes(x= num, y = IUV),color = "black", size = 2.5) + #dibujar los datos como puntos
   scale_y_continuous(breaks = seq(2, 20, 2),
                      limits = c(0,20),
@@ -120,12 +128,8 @@ IUV_MAX_DIARIO ## LLamado a la gráfica para visualizar
 
 ######### GUARDAR LA GRAFICA DE VARIACION DIARIA DEL IUV MAXIMO #####
 
-# Indicar el nombre del archivo PNG de guardado y caracteristicas como ancho, alto y resolución
-png("IUV_diario.png",width = 40, height = 20, res = 1200, units = "cm")
+# Indicar el nombre del archivo PNG de guardado y caracteristicas como ancho, alto y resolucion
+ggsave(filename = "IUV_diario.png", plot =IUV_MAX_DIARIO, 
+       width = 40, height = 20, dpi = 1200, units = "cm")
 
-IUV_MAX_DIARIO ## LLamado a la gráfica que se guardará
-
-# Terminamos la operación de guardado
-dev.off()
-
-### LISTO!! Ahora a verificar en la carpeta de trabajo definida en la linea 25
+### LISTO!! Ahora puedes verificar la grafica guardada en la carpeta de trabajo definida lineas arriba
