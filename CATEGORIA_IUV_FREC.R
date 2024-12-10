@@ -1,5 +1,5 @@
 ##########################################################################################
-#### ELABORACIÓN DE GRAFICA DE DE FRECUENCIA DE CATEGORIAS DE EXPOSICION DEL IUV MAXIMO #########
+#### ELABORACIÓN DE GRAFICA DE FRECUENCIA DE CATEGORIAS DE EXPOSICION DEL IUV MAXIMO #########
 ##########################################################################################
 
 # Si has instalado R por primera vez se recomienda instalar la herramienta RTools, que sera importante para evitar
