@@ -1,12 +1,9 @@
-
-
-
-####    INSTALANDO LAS LIBRERÍAS NECESARIAS PARA LA EJECUCIÓN DEL CÓDIGO
+###    INSTALANDO LAS LIBRERÍAS NECESARIAS PARA LA EJECUCIÓN DEL CÓDIGO
 
 import subprocess
 import sys
 
-# List of libraries to check and install
+# Lista de librerias a verificar e instala:
 libraries = [
     "pandas", "numpy", "matplotlib", "pillow",  "os"
     "cartopy", "shapely", "pyproj", "geopandas", 
